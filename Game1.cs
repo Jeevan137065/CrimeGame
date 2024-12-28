@@ -7,13 +7,19 @@ namespace CrimeGame
     public class Game1 : Game
     {
         private GraphicsDeviceManager _graphics;
-        private SpriteBatch _spriteBatch;
+        private SpriteBatch spriteBatch;
 
+        private SpriteFont font;
+        private int framecount;
+        private double elapsedTime;
+        private int fps;
+        //Game constructor
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+            IsFixedTimeStep = false;
         }
 
         protected override void Initialize()
@@ -25,18 +31,21 @@ namespace CrimeGame
 
         protected override void LoadContent()
         {
-            _spriteBatch = new SpriteBatch(GraphicsDevice);
-
+            spriteBatch = new SpriteBatch(GraphicsDevice);
+            font = Content.Load<SpriteFont>("Font");
             // TODO: use this.Content to load your game content here
         }
 
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
-
             // TODO: Add your update logic here
-
+            elapsedTime += gameTime.ElapsedGameTime.TotalSeconds;
+            framecount++;
+            if(elapsedTime >= 1) {
+                fps = framecount;
+                framecount = 0;
+                elapsedTime = 0;
+            }
             base.Update(gameTime);
         }
 
@@ -45,7 +54,9 @@ namespace CrimeGame
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             // TODO: Add your drawing code here
-
+            spriteBatch.Begin();
+            spriteBatch.DrawString(font, $"FPS: {fps}", new Vector2(10, 10), Color.White);
+            spriteBatch.End();
             base.Draw(gameTime);
         }
     }
