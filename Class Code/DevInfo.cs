@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-
+using Iguina;
 namespace CrimeGame
 {
     public class DevInfo
@@ -10,7 +10,6 @@ namespace CrimeGame
         private int _frameCount;
         private double _elapsedTime;
         private int _fps;
-
         public void LoadContent(ContentManager content, string fontName)
         {
             _font = content.Load<SpriteFont>(fontName);

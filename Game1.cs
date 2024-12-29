@@ -55,7 +55,7 @@ namespace CrimeGame
 
         private void HandleInput(KeyboardState currentKeyboardState)
         {
-            if (currentKeyboardState.IsKeyDown(Keys.L) && !previousKeyboardState.IsKeyDown(Keys.L))
+            if (currentKeyboardState.IsKeyDown(Keys.L) && debugLog) // && !previousKeyboardState.IsKeyDown(Keys.L))
             {
                 showFPS = !showFPS;
             }
