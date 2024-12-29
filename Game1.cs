@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Iguina;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
@@ -8,20 +9,18 @@ namespace CrimeGame
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch spriteBatch;
-        Texture2D ballTexture;
-        Vector2 ballPosition;
-        float ballSpeed;
-        private SpriteFont font;
-        private int framecount;
-        private double elapsedTime;
-        private int fps;
+
+        private Actor ball;
+        private DevInfo fpscounter;
         private bool debugLog = true, showFPS;
         KeyboardState previousKeyboardState;
+        UISystem uiSystem = null!;
         //Game constructor
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
+            Window.Title = "Game 0.1";
             IsMouseVisible = true;
             IsFixedTimeStep = false;
         }
@@ -29,16 +28,17 @@ namespace CrimeGame
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
-            ballPosition = new Vector2(_graphics.PreferredBackBufferWidth / 2, _graphics.PreferredBackBufferHeight / 2);
-            ballSpeed = 120f;
+            ball = new Actor(_graphics.PreferredBackBufferWidth / 2, _graphics.PreferredBackBufferHeight / 2,120f);
+            fpscounter = new DevInfo();
+            
             base.Initialize();
         }
 
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            font = Content.Load<SpriteFont>("Font");
-            ballTexture = Content.Load<Texture2D>("ball");
+            ball.LoadContent(Content, "Ball");
+            fpscounter.LoadContent(Content, "Font");
             // TODO: use this.Content to load your game content here
         }
 
@@ -46,23 +46,19 @@ namespace CrimeGame
         {
             // TODO: Add your update logic here
             KeyboardState currentKeyboardState = Keyboard.GetState();
-            float updateBallSpeed = ballSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
-            if (currentKeyboardState.IsKeyDown(Keys.Up)) { ballPosition.Y -= updateBallSpeed; }
-            if (currentKeyboardState.IsKeyDown(Keys.Down)) { ballPosition.Y += updateBallSpeed; }
-            if (currentKeyboardState.IsKeyDown(Keys.Left)) { ballPosition.X -= updateBallSpeed; }
-            if (currentKeyboardState.IsKeyDown(Keys.Right)) { ballPosition.X += updateBallSpeed; }
 
-            if (currentKeyboardState.IsKeyDown(Keys.L) && !previousKeyboardState.IsKeyDown(Keys.L) && debugLog)
-            {showFPS = !showFPS;}
-            previousKeyboardState = currentKeyboardState;
-            elapsedTime += gameTime.ElapsedGameTime.TotalMilliseconds;
-            framecount++;
-            if(elapsedTime >= 1000) {
-                fps = framecount;
-                framecount = 0;
-                elapsedTime = 0;
-            }
+            HandleInput(currentKeyboardState);
+            ball.Update(gameTime, currentKeyboardState);
+            fpscounter.Update(gameTime);
             base.Update(gameTime);
+        }
+
+        private void HandleInput(KeyboardState currentKeyboardState)
+        {
+            if (currentKeyboardState.IsKeyDown(Keys.L) && !previousKeyboardState.IsKeyDown(Keys.L))
+            {
+                showFPS = !showFPS;
+            }
         }
 
         protected override void Draw(GameTime gameTime)
@@ -71,11 +67,8 @@ namespace CrimeGame
 
             // TODO: Add your drawing code here
             spriteBatch.Begin();
-            spriteBatch.Draw(ballTexture, ballPosition, Color.White);
-            if (showFPS)
-            {
-                spriteBatch.DrawString(font, $"FPS: {fps}", new Vector2(10, 10), Color.White);
-            }
+            ball.Draw(spriteBatch);
+            if (showFPS)    {fpscounter.Draw(spriteBatch);}
             spriteBatch.End();
             base.Draw(gameTime);
         }
