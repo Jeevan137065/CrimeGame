@@ -10,7 +10,7 @@ namespace CrimeGame
         private GraphicsDeviceManager _graphics;
         private SpriteBatch spriteBatch;
 
-        private Actor ball;
+        private Player ball;
         private DevInfo fpscounter;
         private bool debugLog = true, showFPS;
         KeyboardState previousKeyboardState;
@@ -28,7 +28,7 @@ namespace CrimeGame
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
-            ball = new Actor(_graphics.PreferredBackBufferWidth / 2, _graphics.PreferredBackBufferHeight / 2,120f);
+            ball = new Player(_graphics.PreferredBackBufferWidth / 2, _graphics.PreferredBackBufferHeight / 2);
             fpscounter = new DevInfo();
             
             base.Initialize();
