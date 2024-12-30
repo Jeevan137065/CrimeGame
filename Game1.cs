@@ -1,20 +1,17 @@
-﻿using Iguina;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-
+using System.IO;
 namespace CrimeGame
 {
     public class Game1 : Game
     {
-        private GraphicsDeviceManager _graphics;
+        private readonly GraphicsDeviceManager _graphics;
         private SpriteBatch spriteBatch;
 
         private Player ball;
         private DevInfo fpscounter;
         private bool debugLog = true, showFPS;
-        KeyboardState previousKeyboardState;
-        UISystem uiSystem = null!;
         //Game constructor
         public Game1()
         {
@@ -39,7 +36,9 @@ namespace CrimeGame
             spriteBatch = new SpriteBatch(GraphicsDevice);
             ball.LoadContent(Content, "Ball");
             fpscounter.LoadContent(Content, "Font");
-            // TODO: use this.Content to load your game content here
+
+           
+
         }
 
         protected override void Update(GameTime gameTime)
@@ -50,6 +49,8 @@ namespace CrimeGame
             HandleInput(currentKeyboardState);
             ball.Update(gameTime, currentKeyboardState);
             fpscounter.Update(gameTime);
+
+            
             base.Update(gameTime);
         }
 
@@ -63,13 +64,16 @@ namespace CrimeGame
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.Black);
+            GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.Black);
 
             // TODO: Add your drawing code here
             spriteBatch.Begin();
             ball.Draw(spriteBatch);
             if (showFPS)    {fpscounter.Draw(spriteBatch);}
             spriteBatch.End();
+
+
+            
             base.Draw(gameTime);
         }
     }
