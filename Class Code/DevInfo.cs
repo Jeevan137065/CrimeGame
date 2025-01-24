@@ -6,32 +6,27 @@ namespace CrimeGame
 {
     public class DevInfo
     {
-        private SpriteFont _font;
-        private int _frameCount;
-        private double _elapsedTime;
-        private int _fps;
+        private int frameCount;
+        private double elapsedTime;
+        public int fps;
         
-        public void LoadContent(ContentManager content, string fontName)
-        {
-            _font = content.Load<SpriteFont>(fontName);
-        }
+        public void LoadContent(ContentManager content)
+        {}
 
         public void Update(GameTime gameTime)
         {
-            _elapsedTime += gameTime.ElapsedGameTime.TotalMilliseconds;
-            _frameCount++;
+            elapsedTime += gameTime.ElapsedGameTime.TotalMilliseconds;
+            frameCount++;
 
-            if (_elapsedTime >= 1000)
+            if (elapsedTime >= 1000)
             {
-                _fps = _frameCount;
-                _frameCount = 0;
-                _elapsedTime = 0;
+                fps = frameCount;
+                frameCount = 0;
+                elapsedTime = 0;
             }
         }
 
         public void Draw(SpriteBatch spriteBatch)
-        {
-            spriteBatch.DrawString(_font, $"FPS: {_fps}", new Vector2(10, 10), Color.White);
-        }
+        {}
     }
 }

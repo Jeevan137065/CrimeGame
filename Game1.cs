@@ -2,24 +2,34 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.IO;
+
+
+// using GeonBit UI elements
+using GeonBit.UI.Entities;
+using GeonBit.UI;
+using static System.Net.Mime.MediaTypeNames;
 namespace CrimeGame
 {
     public class Game1 : Game
     {
+        //Techincal
         private readonly GraphicsDeviceManager _graphics;
         private SpriteBatch spriteBatch;
-
+        //Main
         private Player ball;
         private DevInfo fpscounter;
         private bool debugLog = true, showFPS;
+        public SpriteFont font;
         //Game constructor
+
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             Window.Title = "Game 0.1";
-            IsMouseVisible = true;
-            IsFixedTimeStep = false;
+            //IsMouseVisible = true;
+            //IsFixedTimeStep = false;
+
         }
 
         protected override void Initialize()
@@ -27,23 +37,32 @@ namespace CrimeGame
             // TODO: Add your initialization logic here
             ball = new Player(_graphics.PreferredBackBufferWidth / 2, _graphics.PreferredBackBufferHeight / 2);
             fpscounter = new DevInfo();
-            
+            //UserInterface.Initialize(Content, BuiltinThemes.hd);
+            //create UI logic here
+
+
             base.Initialize();
         }
+        
+
+        
 
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            ball.LoadContent(Content, "Ball");
-            fpscounter.LoadContent(Content, "Font");
+            ball.LoadContent(Content);
+            fpscounter.LoadContent(Content);
+            font = Content.Load<SpriteFont>("Font");
 
-           
+
 
         }
 
         protected override void Update(GameTime gameTime)
         {
             // TODO: Add your update logic here
+            
+            //UserInterface.Active.Update(gameTime);
             KeyboardState currentKeyboardState = Keyboard.GetState();
 
             HandleInput(currentKeyboardState);
@@ -64,14 +83,25 @@ namespace CrimeGame
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.Black);
+            GraphicsDevice.Clear(Color.Black);
 
             // TODO: Add your drawing code here
+            //UserInterface.Active.Draw(spriteBatch);
             spriteBatch.Begin();
             ball.Draw(spriteBatch);
-            if (showFPS)    {fpscounter.Draw(spriteBatch);}
+            if (showFPS)    {
+            Vector2 Momentum = ball.Velocity * ball.Speed;
+            string info = $"Direction: {ball.CurrentDirection.ToString()}\n" +
+                    $"          Frame:{ball.currentframe}\n" +
+                    $"          Position: {ball.Position}\n" +
+                    $"          Velocity: {ball.Velocity}\n" +
+                    $"          Momentum: {Momentum}";
+                spriteBatch.DrawString(font, $"FPS: {fpscounter.fps}\n", new Vector2(10, 10), Color.White);
+                spriteBatch.DrawString(font, info, new Vector2(10, 24), Color.White);
+                
+               
+            }
             spriteBatch.End();
-
 
             
             base.Draw(gameTime);
