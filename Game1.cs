@@ -1,13 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using System.IO;
 
 
 // using GeonBit UI elements
-using GeonBit.UI.Entities;
-using GeonBit.UI;
-using static System.Net.Mime.MediaTypeNames;
 namespace CrimeGame
 {
     public class Game1 : Game
@@ -21,7 +17,9 @@ namespace CrimeGame
         private bool debugLog = true, showFPS;
         public SpriteFont font;
         //Game constructor
-
+        private MapLoader mapLoader; // Map loader instance
+        private string jsonFilePath = "NewFolder/beach.json"; // JSON map file
+        private string texturePath = "Content/basi.png"; // Texture file path
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -43,9 +41,9 @@ namespace CrimeGame
 
             base.Initialize();
         }
-        
 
-        
+
+
 
         protected override void LoadContent()
         {
@@ -53,6 +51,8 @@ namespace CrimeGame
             ball.LoadContent(Content);
             fpscounter.LoadContent(Content);
             font = Content.Load<SpriteFont>("Font");
+            mapLoader = new MapLoader();
+            mapLoader.LoadJsonMap(GraphicsDevice, jsonFilePath, texturePath);
 
 
 
@@ -61,7 +61,7 @@ namespace CrimeGame
         protected override void Update(GameTime gameTime)
         {
             // TODO: Add your update logic here
-            
+
             //UserInterface.Active.Update(gameTime);
             KeyboardState currentKeyboardState = Keyboard.GetState();
 
@@ -69,7 +69,7 @@ namespace CrimeGame
             ball.Update(gameTime, currentKeyboardState);
             fpscounter.Update(gameTime);
 
-            
+
             base.Update(gameTime);
         }
 
@@ -88,22 +88,24 @@ namespace CrimeGame
             // TODO: Add your drawing code here
             //UserInterface.Active.Draw(spriteBatch);
             spriteBatch.Begin();
+            mapLoader.Draw(spriteBatch);
             ball.Draw(spriteBatch);
-            if (showFPS)    {
-            Vector2 Momentum = ball.Velocity * ball.Speed;
-            string info = $"Direction: {ball.CurrentDirection.ToString()}\n" +
-                    $"          Frame:{ball.currentframe}\n" +
-                    $"          Position: {ball.Position}\n" +
-                    $"          Velocity: {ball.Velocity}\n" +
-                    $"          Momentum: {Momentum}";
+            if (showFPS)
+            {
+                Vector2 Momentum = ball.Velocity * ball.Speed;
+                string info = $"Direction: {ball.CurrentDirection.ToString()}\n" +
+                        $"          Frame:{ball.currentframe}\n" +
+                        $"          Position: {ball.Position}\n" +
+                        $"          Velocity: {ball.Velocity}\n" +
+                        $"          Momentum: {Momentum}";
                 spriteBatch.DrawString(font, $"FPS: {fpscounter.fps}\n", new Vector2(10, 10), Color.White);
                 spriteBatch.DrawString(font, info, new Vector2(10, 24), Color.White);
-                
-               
+
+
             }
             spriteBatch.End();
 
-            
+
             base.Draw(gameTime);
         }
     }
