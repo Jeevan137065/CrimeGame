@@ -180,14 +180,19 @@ public class FPS
         public void LoadContent(ContentManager content)
         {}
         public int fpsCounter(GameTime gameTime) {
-            elapsedTime += gameTime.ElapsedGameTime.TotalMilliseconds;
-            frameCount++;
-            if (elapsedTime >= 1000){
-                fps = frameCount;
-                frameCount = 0;
-                elapsedTime = 0;}
-            return fps;
+        elapsedTime += gameTime.ElapsedGameTime.TotalMilliseconds;
+        frameCount++;
+
+        // Update FPS once every second
+        if (elapsedTime >= 1000)
+        {
+            fps = frameCount; // Calculate FPS
+            frameCount = 0; // Reset frame count
+            elapsedTime -= 1000; // Subtract 1 second from elapsed time to prevent drift
         }
+
+        return fps;
+    }
         public void Update(GameTime gameTime)
         {
             

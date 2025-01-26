@@ -25,7 +25,9 @@ namespace CrimeGame
             Content.RootDirectory = "Content";
             Window.Title = "Game 0.1";
             IsMouseVisible = true;
-            //IsFixedTimeStep = false;
+            IsFixedTimeStep = false;
+            _graphics.SynchronizeWithVerticalRetrace = false; // Disables VSync
+            _graphics.ApplyChanges();
         }
 
         protected override void Initialize()

@@ -89,9 +89,6 @@ namespace CrimeGame
                     currentframe = (currentframe+ 1) % 8;
                 }
             }
-            else { currentframe = 0; }
-
-            //float delta = Speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
             Position += Velocity * Speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
         }
 

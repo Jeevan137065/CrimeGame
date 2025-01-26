@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "CrimeGame": {
+      "commandName": "Project"
+    },
+    "Editor": {
+      "commandName": "Project",
+      "commandLineArgs": "-editor"
+    }
+  }
+}
