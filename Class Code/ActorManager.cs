@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CrimeGame.Class_Code
 {
-    public class ActorManager
+    public class ActorManager //NOT IMPLEMENTED
     {
         private List<Actor> actors;
         public ActorManager()

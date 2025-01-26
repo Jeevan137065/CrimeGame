@@ -30,7 +30,7 @@ namespace CrimeGame
         //Player data
         protected int health;
         protected int energy;
-        protected Emotions emotions;
+        //protected Emotions emotions;
 
         //Player Tech data
         public float Speed;

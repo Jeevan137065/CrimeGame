@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CrimeGame.Content
 {
-    public class Emotions
+    public class Emotions //NOT IMPLEMENTED
     {
         public float Happiness;
         public float stress;
