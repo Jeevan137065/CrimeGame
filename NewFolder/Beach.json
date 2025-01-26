@@ -1102,8 +1102,8 @@
  "tilesets":[
     {
         "firstgid": 1,
-        "source": "Basi.tsx",
-        "image": "Basi.tsx"
+        //"source": "Basi.tsx",
+        "image": "../Basi.tsx"
     }],
  "tilewidth":16,
  "type":"map",

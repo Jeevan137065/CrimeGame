@@ -17,7 +17,6 @@ namespace CrimeGame
         private bool debugLog = true, showFPS;
         public SpriteFont font;
         //Game constructor
-        private MapLoader mapLoader; // Map loader instance
         private string jsonFilePath = "NewFolder/beach.json"; // JSON map file
         private string texturePath = "Content/basi.png"; // Texture file path
         public Game1()
@@ -51,8 +50,6 @@ namespace CrimeGame
             ball.LoadContent(Content);
             fpscounter.LoadContent(Content);
             font = Content.Load<SpriteFont>("Font");
-            mapLoader = new MapLoader();
-            mapLoader.LoadJsonMap(GraphicsDevice, jsonFilePath, texturePath);
 
 
 
@@ -88,7 +85,6 @@ namespace CrimeGame
             // TODO: Add your drawing code here
             //UserInterface.Active.Draw(spriteBatch);
             spriteBatch.Begin();
-            mapLoader.Draw(spriteBatch);
             ball.Draw(spriteBatch);
             if (showFPS)
             {
