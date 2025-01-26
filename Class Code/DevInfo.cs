@@ -2,9 +2,7 @@
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.VisualBasic;
-using ImGuiNET;
-using Monogame.Imgui.Renderer;
-using MonoGame.ImGui;
+
 namespace CrimeGame
 {
     public class DevInfo
