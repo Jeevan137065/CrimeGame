@@ -1,0 +1,22 @@
+[
+  {
+    "Name": "Game",
+    "Projects": [
+      {
+        "Path": "CrimeGame.csproj",
+        "Action": "Start",
+        "DebugTarget": "CrimeGame"
+      }
+    ]
+  },
+  {
+    "Name": "Editor",
+    "Projects": [
+      {
+        "Path": "CrimeGame.csproj",
+        "Action": "Start",
+        "DebugTarget": "Editor"
+      }
+    ]
+  }
+]

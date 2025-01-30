@@ -1,11 +1,13 @@
 {
   "profiles": {
     "CrimeGame": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "hotReloadEnabled": true
     },
     "Editor": {
       "commandName": "Project",
-      "commandLineArgs": "-editor"
+      "commandLineArgs": "-editor",
+      "hotReloadEnabled": false
     }
   }
 }

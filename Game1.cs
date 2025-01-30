@@ -15,6 +15,7 @@ namespace CrimeGame
         //Main
         private Player ball;
         public SpriteFont font;
+        private Texture2D test;
         //Game Data
         public Game1()
         {
@@ -42,7 +43,8 @@ namespace CrimeGame
             spriteBatch = new SpriteBatch(GraphicsDevice);
             
             font = Content.Load<SpriteFont>("Font");
-            
+            test = Content.Load<Texture2D>("Basi");
+
             fps.LoadContent(Content);
             
             

@@ -30,9 +30,10 @@ namespace CrimeGame
         private Point currentCell = Point.Zero;         // Cell Co ordinates
         private Vector2 palettePos;                     // Palette Box Location
         private Rectangle mouseRect = Rectangle.Empty;   // Cell Highlighter Rectangle
-
+        private string path = null;
         //private bool isPlacingTile = false, showUI = true;
         private int selectedTileID = 0;
+        public Texture2D test;
 
         //Features
         private Canvas canvas;                          
@@ -61,22 +62,29 @@ namespace CrimeGame
             base.Initialize();
             canvas = new Canvas(25, 20, CellSize);
             absoluteBound = new AbsoluteBound(0.5f, 1.5f);
-            colorSelector = new ColorSelector(GraphicsDevice);
+            //colorSelector = new ColorSelector(GraphicsDevice);
             palettePos = new Vector2(20,640);
             tileSet = new TileSet(GraphicsDevice, CellSize);
-            palette = new Palette(tileSet);
-            tileManager = new TileManager(tileSet, CellSize);
+            
+            palette = new Palette();
+            tileManager = new TileManager(CellSize);
             toolbar = new Toolbar(GraphicsDevice);
             camera = new Camera();
             fps = new FPS();
+            MrVoid();
         }
 
         protected override void LoadContent()
         {
+            path = "Basi";
+            //tileSet.TileTexture = null;
             spriteBatch = new SpriteBatch(GraphicsDevice);
             font = Content.Load<SpriteFont>("Font");
-            tileSet.LoadTileSet(Content, "Basi");
-            palette.InitializePalette();
+            test = Content.Load<Texture2D>("Basi");
+            tileSet.LoadTileSet();
+            tileSet.SliceIntoAtlas(test);
+            palette.LoadTileSet(tileSet);
+            tileManager.LoadTileSet(tileSet);
             
         }
 
@@ -139,7 +147,7 @@ namespace CrimeGame
         private void HandleKeyBoard(KeyboardState currentKeyboardState, GameTime gameTime)
         {   //KEYBOARD
             if (currentKeyboardState.IsKeyDown(Keys.L))     {   showFPS = !showFPS;}
-            if (currentKeyboardState.IsKeyDown(Keys.O))     {   colorSelector.Toggle(); }
+            //if (currentKeyboardState.IsKeyDown(Keys.O))     {   colorSelector.Toggle(); }
             
         }
 
@@ -225,7 +233,13 @@ namespace CrimeGame
             else    {mouseGrid.X = 0; mouseGrid.Y = 0;}
             canvas.DrawCanvasBorder(spriteBatch, buttonTexture,Color.Black, 2);
         }
-
+        private void MrVoid()
+        {
+            if (tileSet == null)    {   throw new Exception("TileSet failed to initialize!");}
+            if (tileManager == null)    { throw new Exception("TileManager failed to initialize!"); }
+            if (palette == null)    { throw new Exception("Palette failed to initialize!"); }
+            if (Content == null) { throw new Exception("Content failed to initialize!"); }
+        }
         private void DrawDebugInfo()
         {
             var totalMemory = GC.GetTotalMemory(false) / 1024.0 / 1024.0; // Convert to MB

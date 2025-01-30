@@ -6,8 +6,6 @@ using MonoGame.Extended;
 using MonoGame.Extended.Tiled.Renderers;
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography.X509Certificates;
 
 namespace CrimeGame
 {
@@ -77,8 +75,8 @@ namespace CrimeGame
         }
     }
     public class TileSet
-    { private GraphicsDevice GraphicsDevice;
-        private Texture2D TileTexture;
+    {   private GraphicsDevice GraphicsDevice;
+        //public Texture2D TileTexture;
         public Dictionary<int, Texture2D> Atlas;
         public int tileSize,tileCount;
 
@@ -87,15 +85,19 @@ namespace CrimeGame
             tileSize = cellSize;
             Atlas = new Dictionary<int,Texture2D>();
             tileCount = 0;
-            
         }
-        public void LoadTileSet(ContentManager Content, String path)
+        public void LoadTileSet()
         {
-            TileTexture = Content.Load<Texture2D>(path);
-            SliceIntoAtlas();
+            //TileTexture = Content.Load<Texture2D>(path);
+            //TileTexture = texture;
+            //SliceIntoAtlas(texture);
         }
 
-        private void SliceIntoAtlas() {
+        public void SliceIntoAtlas(Texture2D TileTexture) {
+            if (TileTexture == null)
+            {
+                throw new Exception("Error: Attempted to slice an uninitialized tileset texture.");
+            }
             int tileX = TileTexture.Width / tileSize;
             int tileY = TileTexture.Height / tileSize;
 
@@ -144,13 +146,17 @@ namespace CrimeGame
         private int selectedTileID;
         private int tileSize;
         private Rectangle tileBarBounds;
-        public Palette(TileSet _tileSet)
+        public Palette()
         {
-            tileSet = _tileSet;
             paletteBox = new List<int> { -1, -1, -1, -1 };
             tileBar = new List<int>(tileSet.Atlas.Keys);
             tileBarBounds = new Rectangle(10,500, 300, 64);
-            tileSize = _tileSet.tileSize;
+        }
+        public void LoadTileSet(TileSet tileSet)
+        {
+            this.tileSet = tileSet;
+            tileSize = tileSet.tileSize;
+            InitializePalette();
         }
         public void InitializePalette()
         {
@@ -240,11 +246,11 @@ namespace CrimeGame
         private TileSet TileSet;
         private int CellSize;
 
-        public TileManager(TileSet tileSet,int cellSize) { 
-            TileSet = tileSet;
+        public TileManager(int cellSize) {
             CellSize = cellSize;
             grid = new Dictionary<Point, int>();
         }
+        public void LoadTileSet(TileSet tileSet) { TileSet = tileSet; }
         public void PlaceTile(Point cell, int tileID)
         {   if (!grid.ContainsKey(cell)) { grid[cell] = tileID; }}
         public void RemoveTile(Point cell)
