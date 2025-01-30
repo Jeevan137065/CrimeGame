@@ -3,8 +3,9 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Diagnostics;
-using System.Collections.Generic;
-using CrimeGame.Class_Code;
+using MonoGame.Extended.VectorDraw;
+using MonoGame.Extended;
+
 
 namespace CrimeGame
 {
@@ -17,102 +18,96 @@ namespace CrimeGame
         private TimeSpan lastCpuTime;
         private float cpuUsage = 0f;
         private long maxMemory = 0;
-        
-        //Editor
-        private int gridCellSize = 16; // Default grid cell size
-        private Color gridColor = Color.Gray * 0.5f; // Semi-transparent grid lines
-        private Point selectedCell = Point.Zero; // Selected cell on the grid
-        private int[,] gridTiles;
-        
-        //Features
-        private Camera camera;
-        private Palette tilePalette;
-        private FPS fps;
-        private Stack<int[,]> undoStack;
-        private Stack<int[,]> redoStack;
-        
-        //UI
         private bool showFPS;
+        //private bool isImport = false;
+
+        //Editor
+        private int CellSize = 32;                      // Cell Size
+        private float targetZoom;
+        private Color gridColor = Color.DarkGray;
+        private Point mouseGrid = Point.Zero;           // Grid Co ordinates
+        private Point mousePos = Point.Zero;            // Absoulute Mouse Position
+        private Point currentCell = Point.Zero;         // Cell Co ordinates
+        private Vector2 palettePos;                     // Palette Box Location
+        private Rectangle mouseRect = Rectangle.Empty;   // Cell Highlighter Rectangle
+
+        //private bool isPlacingTile = false, showUI = true;
+        private int selectedTileID = 0;
+
+        //Features
+        private Canvas canvas;                          
+        private AbsoluteBound absoluteBound;
+        private ColorSelector colorSelector;
+        private Palette palette;
+        private TileSet tileSet;
+        private TileManager tileManager;
+        public Texture2D buttonTexture;
+        private Camera camera;
+        private FPS fps;
+        //UI
+        private Toolbar toolbar;
         public SpriteFont font;
 
         public EditorMode()
-        {
-            graphics = new GraphicsDeviceManager(this);
+        {   graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
             WindowDetail(this.Window);
-            
-
             cpuStopwatch = Stopwatch.StartNew();
-            lastCpuTime = Process.GetCurrentProcess().TotalProcessorTime;
-
-        }
+            lastCpuTime = Process.GetCurrentProcess().TotalProcessorTime;}
 
         protected override void Initialize()
         {
             base.Initialize();
-            
-            // Initialize editor-specific logic here
-            fps = new FPS();
+            canvas = new Canvas(25, 20, CellSize);
+            absoluteBound = new AbsoluteBound(0.5f, 1.5f);
+            colorSelector = new ColorSelector(GraphicsDevice);
+            palettePos = new Vector2(20,640);
+            tileSet = new TileSet(GraphicsDevice, CellSize);
+            palette = new Palette(tileSet);
+            tileManager = new TileManager(tileSet, CellSize);
+            toolbar = new Toolbar(GraphicsDevice);
             camera = new Camera();
-            
-            int gridWidth = GraphicsDevice.Viewport.Width / gridCellSize;
-            int gridHeight = GraphicsDevice.Viewport.Height / gridCellSize;
-            gridTiles = new int[gridWidth, gridHeight];
-
-            undoStack = new Stack<int[,]>();
-            redoStack = new Stack<int[,]>();
-
+            fps = new FPS();
         }
 
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
             font = Content.Load<SpriteFont>("Font");
-
-            var grassTexture = new Texture2D(GraphicsDevice, 1, 1);
-            grassTexture.SetData(new[] { Color.Green });
-
-            var blueTexture = new Texture2D(GraphicsDevice, 1, 1);
-            blueTexture.SetData(new[] { Color.Blue });
-
-            var yellowTexture = new Texture2D(GraphicsDevice, 1, 1);
-            yellowTexture.SetData(new[] { Color.Yellow });
-
-            tilePalette = new Palette(new[] { grassTexture, blueTexture, yellowTexture });
+            tileSet.LoadTileSet(Content, "Basi");
+            palette.InitializePalette();
+            
         }
 
         protected override void Update(GameTime gameTime)
         {
             var currentKeyboardState = Keyboard.GetState();
             var currentMouseState = Mouse.GetState();
-            var lastMouseState = Point.Zero; 
-            
-            lastMouseState = HandleInput(currentKeyboardState, currentMouseState,lastMouseState,gameTime);
+            var lastMouseState = Point.Zero;
 
-            tilePalette.Update(currentMouseState);
+            // User Update
+            lastMouseState = HandleMouse(currentMouseState,lastMouseState,gameTime);
+            HandleKeyBoard(currentKeyboardState, gameTime);
+            // Object Update
+            currentCell = canvas.GetCellAtMousePosition(currentMouseState.Position.ToVector2(), Matrix.Identity);
+            canvas.CenterCanvas(GraphicsDevice.Viewport);
+            palette.Update(currentMouseState);
+            toolbar.Update(currentMouseState, currentKeyboardState, gameTime);
+            //Techincal Update
+            maxMemory = Math.Max(maxMemory, Process.GetCurrentProcess().PrivateMemorySize64 / (1024 * 1024)); // Convert to MB
             fps.Update(gameTime);
             UpdateCpuUsage();
-            maxMemory = Math.Max(maxMemory, Process.GetCurrentProcess().PrivateMemorySize64 / (1024 * 1024)); // Convert to MB
             base.Update(gameTime);
         }
 
-        private Point HandleInput(KeyboardState currentKeyboardState, MouseState currentMouseState, Point lastMouseState, GameTime gameTime)
+        private Point HandleMouse(MouseState currentMouseState, Point lastMouseState, GameTime gameTime)
         {
-
-            //KEYBOARD
-            if (currentKeyboardState.IsKeyDown(Keys.L))                                                     {   showFPS = !showFPS;}
-            if (currentKeyboardState.IsKeyDown(Keys.OemPlus))                                               {   gridCellSize += 2;}
-            if (currentKeyboardState.IsKeyDown(Keys.OemMinus) && gridCellSize > 2)                          {   gridCellSize -= 2;}
-            if (currentKeyboardState.IsKeyDown(Keys.Z) && undoStack.Count > 0)                              {   Undo();}
-            if (currentKeyboardState.IsKeyDown(Keys.Y) && redoStack.Count > 0)                              {   Redo();}
-
             //MOUSE
-            selectedCell = new Point(
-                currentMouseState.X / gridCellSize,
-                currentMouseState.Y / gridCellSize); 
-            float targetZoom = camera.Zoom;
+            targetZoom = camera.Zoom;
+            targetZoom = absoluteBound.Clamp(targetZoom);
             float mouseScroll = currentMouseState.ScrollWheelValue;
+            mousePos = currentMouseState.Position;
             float scrollDelta = (mouseScroll - lastMouseState.Y) / 120; // Adjust zoom sensitivity
             if (scrollDelta != 0)
             {
@@ -127,27 +122,43 @@ namespace CrimeGame
             {
                 camera.SmoothZoom(camera.Zoom - 0.1f, (float)gameTime.ElapsedGameTime.TotalSeconds);
             }
-            if (currentMouseState.RightButton == ButtonState.Pressed)   {   var delta = currentMouseState.Position.ToVector2(); }
+            if (currentMouseState.LeftButton == ButtonState.Pressed && canvas.Bounds.Contains(currentMouseState.Position))
+            {
+                if (palette.isMouseOverPalette(currentMouseState.Position)) { selectedTileID = palette.GetSelectedTileID(); }
+                if (selectedTileID != -1)
+                {
+                    Point cellPos = tileManager.GetCell(mousePos,camera);
+                    tileManager.PlaceTile(cellPos, selectedTileID);
+                }
+            }
+            
             if (currentMouseState.MiddleButton == ButtonState.Pressed)  {   var delta = currentMouseState.Position.ToVector2() - lastMouseState.ToVector2();camera.Pan(delta);}
             
-            return lastMouseState = currentMouseState.Position;
+
+            return lastMouseState = currentMouseState.Position;}
+        private void HandleKeyBoard(KeyboardState currentKeyboardState, GameTime gameTime)
+        {   //KEYBOARD
+            if (currentKeyboardState.IsKeyDown(Keys.L))     {   showFPS = !showFPS;}
+            if (currentKeyboardState.IsKeyDown(Keys.O))     {   colorSelector.Toggle(); }
+            
         }
 
         protected override void Draw(GameTime gameTime)
-        {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+        {   GraphicsDevice.Clear(Color.CornflowerBlue);
             //Main Pass
-            spriteBatch.Begin(transformMatrix: camera.GetTransformMatrix());
+                spriteBatch.Begin(transformMatrix: camera.GetTransformMatrix());
                     DrawGrid();
-            spriteBatch.End();
+                    tileManager.Draw(spriteBatch);
+                spriteBatch.End();
             //SecondaryPass
-            spriteBatch.Begin();        
-                tilePalette.Draw(spriteBatch,GraphicsDevice);
+                spriteBatch.Begin();
+                    palette.Draw(spriteBatch);
+                    toolbar.Draw(spriteBatch);
                 if (showFPS){   
                     spriteBatch.DrawString(font, "DEBUG", new Vector2(10,10), Color.White);
-                    spriteBatch.DrawString(font, $"FPS: {fps.fpsCounter(gameTime)}\n" + $"Co-ordinates: {selectedCell}", new Vector2(10, 30), Color.White);
+                    spriteBatch.DrawString(font, $"FPS: {fps.fpsCounter(gameTime)}\n", new Vector2(10, 100), Color.White);
                     DrawDebugInfo();}
-            spriteBatch.End();
+                spriteBatch.End();
             base.Draw(gameTime);
         }
 
@@ -166,75 +177,75 @@ namespace CrimeGame
         {
             spriteBatch.Dispose();
         }
-        private bool IsValidCell(Point cell)
-        {
-            return cell.X >= 0 && cell.Y >= 0 && cell.X < gridTiles.GetLength(0) && cell.Y < gridTiles.GetLength(1);
-        }
-        private void SaveStateForUndo()
-        {
-            // Clone gridTiles to save state
-            undoStack.Push((int[,])gridTiles.Clone());
-            redoStack.Clear(); // Clear redo history when making new changes
-        }
-        private void Undo()
-        {
-            if (undoStack.Count > 0)
-            {
-                redoStack.Push((int[,])gridTiles.Clone());
-                gridTiles = undoStack.Pop();
-            }
-        }
-        private void Redo()
-        {
-            if (redoStack.Count > 0)
-            {
-                undoStack.Push((int[,])gridTiles.Clone());
-                gridTiles = redoStack.Pop();
-            }
-        }
         private void DrawGrid()
         {
-            int screenWidth = GraphicsDevice.Viewport.Width;
-            int screenHeight = GraphicsDevice.Viewport.Height;
+            int viewportWidth = GraphicsDevice.Viewport.Width;
+            int viewportHeight = GraphicsDevice.Viewport.Height;
 
-            // Draw vertical lines
-            for (int x = 0; x < screenWidth; x += gridCellSize)
+            // Center the canvas in the viewport
+            int canvasOriginX = (viewportWidth - canvas.Bounds.Width) / 2;
+            int canvasOriginY = (viewportHeight - canvas.Bounds.Height) / 2;
+
+            // Correct bounds for grid rendering
+            int gridStartX = canvasOriginX;
+            int gridEndX = canvasOriginX + canvas.Bounds.Width;
+            int gridStartY = canvasOriginY;
+            int gridEndY = canvasOriginY + canvas.Bounds.Height;
+
+            // Draw vertical grid lines
+            for (int x = gridStartX; x <= gridEndX; x += CellSize)
             {
-                spriteBatch.DrawLine(new Vector2(x, 0), new Vector2(x, screenHeight), gridColor);
+                spriteBatch.DrawLine(new Vector2(x, gridStartY), new Vector2(x, gridEndY), gridColor);
             }
 
-            // Draw horizontal lines
-            for (int y = 0; y < screenHeight; y += gridCellSize)
+            // Draw horizontal grid lines
+            for (int y = gridStartY; y <= gridEndY; y += CellSize)
             {
-                spriteBatch.DrawLine(new Vector2(0, y), new Vector2(screenWidth, y), gridColor);
+                spriteBatch.DrawLine(new Vector2(gridStartX, y), new Vector2(gridEndX, y), gridColor);
             }
 
-            // Highlight the selected cell
-            Rectangle cellRect = new Rectangle(
-                selectedCell.X * gridCellSize,
-                selectedCell.Y * gridCellSize,
-                gridCellSize,
-                gridCellSize
-            );
+            // Determine which cell is currently selected
+            if (canvas.Bounds.Contains(mousePos))
+            {
+                mouseGrid.X = (mousePos.X - canvasOriginX); mouseGrid.Y = (mousePos.Y - canvasOriginY);
+                int cellX = mouseGrid.X/ CellSize;
+                int cellY = mouseGrid.Y/ CellSize;
+                // Calculate the cell rectangle
+                mouseRect = new Rectangle(
+                    canvasOriginX + cellX * CellSize,
+                    canvasOriginY + cellY * CellSize,
+                    CellSize,
+                    CellSize
+                );
 
-            spriteBatch.DrawRectangle(cellRect, Color.Yellow * 0.8f);
-
+                // Draw the highlight for the selected cell
+                spriteBatch.DrawRectangle(mouseRect, Color.Black, 2);
+                spriteBatch.FillRectangle(mouseRect, Color.Yellow * 0.8f);
+            }
+            else    {mouseGrid.X = 0; mouseGrid.Y = 0;}
+            canvas.DrawCanvasBorder(spriteBatch, buttonTexture,Color.Black, 2);
         }
+
         private void DrawDebugInfo()
         {
             var totalMemory = GC.GetTotalMemory(false) / 1024.0 / 1024.0; // Convert to MB
             var process = Process.GetCurrentProcess();
             var ramUsage = process.WorkingSet64 / 1024.0 / 1024.0; // Convert to MB
-            string debugText = $"Grid Size: {gridCellSize}px\n" +
-                                           $"Memory Usage: {process.PrivateMemorySize64 / (1024 * 1024)} MB\n" +
-                                           $"Max Memory Usage: {maxMemory}" + //$"/{totalMemory} MB"
-                                           $"\nCPU Usage: {cpuUsage:F2}%" +
-                                           $"\nViewport resolution : {GraphicsDevice.Viewport.Width}x{GraphicsDevice.Viewport.Height}" +
-                                           $"\nWindow resolution : {graphics.PreferredBackBufferWidth}x{graphics.PreferredBackBufferHeight}";
-                                           
 
-            Vector2 position = new Vector2(10, 80);
-            spriteBatch.DrawString(font, debugText, position, Color.White);
+            string debugInfo =  $"Canvas Bounds: {canvas.Bounds}\n" +
+                                $"Absolute Bounds: Zoom [{absoluteBound.MinZoom}, {absoluteBound.MaxZoom}]\n" +
+                                $"Absolute Mouse Position: {mousePos}\n" +
+                                $"Relative Mouse Position : {mouseGrid}\n" +
+                                $"Current Cell ID: [ {currentCell}]\n" +
+                                $"Current Zoom: {camera.Zoom}\n\n";
+            string debugText =  $"Grid Size: {CellSize}px\n" +
+                                $"Memory Usage: {process.PrivateMemorySize64 / (1024 * 1024)} MB\n" +
+                                $"Max Memory Usage: {maxMemory}" + //$"/{totalMemory} MB"
+                                $"\nCPU Usage: {cpuUsage:F2}%" +
+                                $"\nViewport resolution : {GraphicsDevice.Viewport.Width}x{GraphicsDevice.Viewport.Height}" +
+                                $"\nWindow resolution : {graphics.PreferredBackBufferWidth}x{graphics.PreferredBackBufferHeight}";
+            Vector2 position = new Vector2(10, 140);
+            spriteBatch.DrawString(font, debugInfo + debugText, position, Color.White);
         }
         private void UpdateCpuUsage()
         {

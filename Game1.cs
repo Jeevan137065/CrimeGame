@@ -16,9 +16,6 @@ namespace CrimeGame
         private Player ball;
         public SpriteFont font;
         //Game Data
-        List<Button> guiElements = new List<Button>();
-        private Texture2D whiteTexture;
-
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -45,15 +42,7 @@ namespace CrimeGame
             spriteBatch = new SpriteBatch(GraphicsDevice);
             
             font = Content.Load<SpriteFont>("Font");
-            whiteTexture = new Texture2D(GraphicsDevice, 1, 1);
-            whiteTexture.SetData(new[] { Color.White });
-            Button startButton = new Button(new Rectangle(100, 100, 200, 50), "Start", font)
-            {
-                BackgroundColor = Color.Blue, HoverColor = Color.LightBlue,
-                OnClick = () => { System.Console.WriteLine("Start Button Clicked"); }
-            };
-            startButton.SetTexture(whiteTexture);
-            guiElements.Add(startButton);
+            
             fps.LoadContent(Content);
             
             
@@ -68,7 +57,6 @@ namespace CrimeGame
             
             //Logic
             currentMouseState = Mouse.GetState();
-            foreach (var button in guiElements)                 {button.Update(gameTime, currentMouseState);}
             previousMouseState = currentMouseState;
             HandleInput(currentKeyboardState);
 
@@ -105,7 +93,6 @@ namespace CrimeGame
                 spriteBatch.DrawString(font, $"FPS: {fps.fpsCounter(gameTime)}\n", new Vector2(10, 10), Color.White);
                 spriteBatch.DrawString(font, info, new Vector2(10, 24), Color.White);}
 
-            foreach (var button in guiElements)         {button.Draw(spriteBatch);}
             spriteBatch.End();
             base.Draw(gameTime);
         }

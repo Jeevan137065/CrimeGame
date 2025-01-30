@@ -49,12 +49,12 @@
 /processorParam:TextureFormat=Color
 /build:EAST.png
 
-#begin File.spritefont
+#begin Font.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
 /processorParam:PremultiplyAlpha=True
 /processorParam:TextureFormat=Compressed
-/build:File.spritefont;Font.spritefont
+/build:Font.spritefont
 
 #begin NORTH.png
 /importer:TextureImporter
