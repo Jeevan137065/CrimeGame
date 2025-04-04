@@ -141,7 +141,8 @@ namespace CrimeGame
     }
     public class Palette
     {
-        private List<int> paletteBox, tileBar;
+        private List<int> paletteBox; 
+        private List<int> tileBar;
         private TileSet tileSet;
         private int selectedTileID;
         private int tileSize;
@@ -149,12 +150,12 @@ namespace CrimeGame
         public Palette()
         {
             paletteBox = new List<int> { -1, -1, -1, -1 };
-            tileBar = new List<int>(tileSet.Atlas.Keys);
             tileBarBounds = new Rectangle(10,500, 300, 64);
         }
         public void LoadTileSet(TileSet tileSet)
         {
             this.tileSet = tileSet;
+            tileBar = new List<int>(tileSet.Atlas.Keys);
             tileSize = tileSet.tileSize;
             InitializePalette();
         }
@@ -162,8 +163,9 @@ namespace CrimeGame
         {
             for (int i = 0; i < paletteBox.Count; i++)
             {
-                paletteBox.Add(i);
-            }}
+                paletteBox[i] = i;
+            }
+        }
         public void Update(MouseState moiseState)
         {
             if (moiseState.LeftButton == ButtonState.Pressed && isMouseOverPalette(moiseState.Position))

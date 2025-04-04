@@ -59,7 +59,6 @@ namespace CrimeGame
 
         protected override void Initialize()
         {
-            base.Initialize();
             canvas = new Canvas(25, 20, CellSize);
             absoluteBound = new AbsoluteBound(0.5f, 1.5f);
             //colorSelector = new ColorSelector(GraphicsDevice);
@@ -72,6 +71,8 @@ namespace CrimeGame
             camera = new Camera();
             fps = new FPS();
             MrVoid();
+            
+            base.Initialize();
         }
 
         protected override void LoadContent()
@@ -79,6 +80,7 @@ namespace CrimeGame
             path = "Basi";
             //tileSet.TileTexture = null;
             spriteBatch = new SpriteBatch(GraphicsDevice);
+            buttonTexture = new Texture2D(GraphicsDevice, 1, 1);
             font = Content.Load<SpriteFont>("Font");
             test = Content.Load<Texture2D>("Basi");
             tileSet.LoadTileSet();
@@ -154,7 +156,7 @@ namespace CrimeGame
         protected override void Draw(GameTime gameTime)
         {   GraphicsDevice.Clear(Color.CornflowerBlue);
             //Main Pass
-                spriteBatch.Begin(transformMatrix: camera.GetTransformMatrix());
+                spriteBatch.Begin();
                     DrawGrid();
                     tileManager.Draw(spriteBatch);
                 spriteBatch.End();
