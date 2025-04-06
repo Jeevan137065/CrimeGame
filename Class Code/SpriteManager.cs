@@ -247,20 +247,21 @@ namespace CrimeGame
         private Dictionary<Point, int> grid;
         private TileSet TileSet;
         private int CellSize;
-
+        public TileLayer CurrentLayer { get; set; }
         public TileManager(int cellSize) {
             CellSize = cellSize;
             grid = new Dictionary<Point, int>();
         }
         public void LoadTileSet(TileSet tileSet) { TileSet = tileSet; }
         public void PlaceTile(Point cell, int tileID)
-        {   if (!grid.ContainsKey(cell)) { grid[cell] = tileID; }}
+        {   if (!grid.ContainsKey(cell) && !CurrentLayer.IsLocked) { grid[cell] = tileID; }}
         public void RemoveTile(Point cell)
-        {if (grid.ContainsKey(cell)) { grid.Remove(cell); }}
+        {if (grid.ContainsKey(cell) && !CurrentLayer.IsLocked) { grid.Remove(cell); }}
         public Point GetCell(Point mousePosition, Camera camera) { 
             Vector2 worldPos = Vector2.Transform(mousePosition.ToVector2(), Matrix.Invert(camera.GetTransformMatrix()));
             return new Point((int)worldPos.X / CellSize, (int)worldPos.Y / CellSize);
         }
+        
         public void Draw(SpriteBatch spriteBatch) { 
             foreach (var tile in grid)
             {

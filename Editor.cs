@@ -5,6 +5,8 @@ using System;
 using System.Diagnostics;
 using MonoGame.Extended.VectorDraw;
 using MonoGame.Extended;
+using MonoGame.Extended.Tiled;
+using System.Runtime.CompilerServices;
 
 
 namespace CrimeGame
@@ -45,6 +47,8 @@ namespace CrimeGame
         public Texture2D buttonTexture;
         private Camera camera;
         private FPS fps;
+        private LayerManager layerManager;
+        private LayerTab layerTab;
         //UI
         private Toolbar toolbar;
         public SpriteFont font;
@@ -61,12 +65,15 @@ namespace CrimeGame
         {
             canvas = new Canvas(25, 20, CellSize);
             absoluteBound = new AbsoluteBound(0.5f, 1.5f);
-            //colorSelector = new ColorSelector(GraphicsDevice);
+            colorSelector = new ColorSelector(GraphicsDevice);
             palettePos = new Vector2(20,640);
             tileSet = new TileSet(GraphicsDevice, CellSize);
             
             palette = new Palette();
             tileManager = new TileManager(CellSize);
+            layerManager = new LayerManager(tileSet, CellSize);
+            tileManager.CurrentLayer = layerManager.Layers[layerManager.Layers.Count - 1] as TileLayer;
+            layerTab = new LayerTab(GraphicsDevice,layerManager, tileManager);
             toolbar = new Toolbar(GraphicsDevice);
             camera = new Camera();
             fps = new FPS();
@@ -86,6 +93,7 @@ namespace CrimeGame
             tileSet.LoadTileSet();
             tileSet.SliceIntoAtlas(test);
             palette.LoadTileSet(tileSet);
+            layerTab.LoadTabArea(font);
             tileManager.LoadTileSet(tileSet);
             
         }
@@ -104,6 +112,8 @@ namespace CrimeGame
             canvas.CenterCanvas(GraphicsDevice.Viewport);
             palette.Update(currentMouseState);
             toolbar.Update(currentMouseState, currentKeyboardState, gameTime);
+            layerTab.Update(gameTime);
+            layerManager.Update(gameTime);
             //Techincal Update
             maxMemory = Math.Max(maxMemory, Process.GetCurrentProcess().PrivateMemorySize64 / (1024 * 1024)); // Convert to MB
             fps.Update(gameTime);
@@ -159,11 +169,13 @@ namespace CrimeGame
                 spriteBatch.Begin();
                     DrawGrid();
                     tileManager.Draw(spriteBatch);
-                spriteBatch.End();
+                    layerManager.Draw(spriteBatch);
+            spriteBatch.End();
             //SecondaryPass
                 spriteBatch.Begin();
                     palette.Draw(spriteBatch);
-                    toolbar.Draw(spriteBatch);
+                    layerTab.Draw(spriteBatch);
+                    //toolbar.Draw(spriteBatch);
                 if (showFPS){   
                     spriteBatch.DrawString(font, "DEBUG", new Vector2(10,10), Color.White);
                     spriteBatch.DrawString(font, $"FPS: {fps.fpsCounter(gameTime)}\n", new Vector2(10, 100), Color.White);
@@ -253,7 +265,9 @@ namespace CrimeGame
                                 $"Absolute Mouse Position: {mousePos}\n" +
                                 $"Relative Mouse Position : {mouseGrid}\n" +
                                 $"Current Cell ID: [ {currentCell}]\n" +
-                                $"Current Zoom: {camera.Zoom}\n\n";
+                                $"Current Zoom: {camera.Zoom}\n\n"+
+                                layerManager.GetLayerDebugInfo()+
+                                $"Current Active Layer: {tileManager.CurrentLayer?.Name ?? "None"}"; ;
             string debugText =  $"Grid Size: {CellSize}px\n" +
                                 $"Memory Usage: {process.PrivateMemorySize64 / (1024 * 1024)} MB\n" +
                                 $"Max Memory Usage: {maxMemory}" + //$"/{totalMemory} MB"
